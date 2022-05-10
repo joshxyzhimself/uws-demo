@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+  <title>UWS Demo</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, user-scalable=no" />
+  <base href="/" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+</head>
+<body class="app-body">
+  <div class="h-screen flex flex-col justify-center items-center">
+    <div class="p-2 h-full w-full">
+      <div id="chatbox" class="p-2 h-full w-full border border-slate-200 bg-slate-100">
+        <div class="p-2 text-left text-base font-normal">
+          Messages go here..
+        </div>
+      </div>
+    </div>
+    <form id="form-message" class="w-full m-1 p-1 flex flex-row justify-center items-center">
+      <input
+        id="input-name"
+        type="text"
+        placeholder="name"
+        class="w-auto mx-1 p-2 border bg-slate-50 w-32"
+      />
+      <input
+        id="input-message"
+        type="text"
+        placeholder="message"
+        class="w-full mx-1 p-2 border bg-slate-50"
+      />
+      <button
+        id="btn-submit"
+        type="submit"
+        class="w-auto mx-1 p-2 border bg-slate-800 text-white w-16"
+      >
+        send
+      </button>
+    </form>
+  </div>
+  <script>
+
+    const append_message = (sender, message) => {
+      const element = document.createElement('div');
+      element.className = 'p-1 text-left text-base font-normal';
+      element.innerText = `${sender}: ${message}`;
+      $('#chatbox').append(element)
+    };
+
+    const websocket_protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const websocket_host = window.location.host;
+    const websocket_url = `${websocket_protocol}//${websocket_host}`;
+    
+    let ws = new WebSocket(websocket_url);
+
+    const open_listener = () => {
+      append_message('System', 'Websocket connected.');
+    };
+
+    const message_listener = (event) => {
+      const message_string = event.data;
+      const message = JSON.parse(message_string);
+      if (typeof message.sender === 'string') {
+        if (typeof message.message === 'string') {
+          append_message(message.sender, message.message);
+        }
+      }
+    };
+
+    const close_listener = () => {
+      append_message('System', 'Websocket disconnected.');
+    };
+
+    ws.addEventListener('open', open_listener);
+    ws.addEventListener('message', message_listener);
+    ws.addEventListener('close', close_listener);
+
+    $('#form-message').submit((e) => {
+      e.preventDefault();
+      const sender = $('#input-name').val();
+      const message = $('#input-message').val();
+      ws.send(JSON.stringify({ sender, message }));
+      $('#input-message').val('');
+    });
+
+  </script>
+</body>
+</html>
