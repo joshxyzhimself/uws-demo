@@ -24,7 +24,6 @@ app.ws('/*', {
     const message = JSON.parse(message_string);
     assert(typeof message.sender === 'string');
     assert(typeof message.message === 'string');
-    /* You can do app.publish('sensors/home/temperature', '22C') kind of pub/sub as well */
     app.publish('chatbox', JSON.stringify(message));
   },
 });
